@@ -1,5 +1,7 @@
 pragma solidity 0.5.16;
 
+import "./interfaces/IComptroller.sol";
+
 /// @title Basic Leveraged Strategy
 /// @author Chainvisions
 /// @notice Basic leveraged strategy contract
@@ -19,6 +21,26 @@ contract Strategy {
     // performance fees. These fees must be read from the Controller
     // and sent to it on harvest.
     function harvest() public {
+        // This function MUST also claim XVS rewards and
+        // liquidate them.
 
     }
+
+    // This function should liquidate part of the
+    // investment to repay BUSD debt that the position accrued.
+    function liquidateAmount(uint256 _amount) public {
+        require(_amount <= investment(), "Strategy: Amount must be equal to or less than the investment");
+        // doSomething()
+    }
+
+    // This function should return the amount of the investment
+    // held in the position.
+    function investment() public view returns (uint256) {
+
+    }
+
+    function finalizeUpgrade() public {
+        
+    }
+
 }
