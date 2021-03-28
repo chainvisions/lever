@@ -9,13 +9,18 @@ import "./Manageable.sol";
 contract Controller is IController, Manageable {
     using SafeERC20 for IERC20;
 
+    address public collateral;
+    address public principal;
     address public feeBeneficiary;
     uint256 performanceFeeNumerator;
     uint256 performanceFeeDenominator;
     mapping(address => bool) public strategies;
     event FeesCollected(address indexed token, uint256 indexed fees);
+    event FeesUpdated(uint256 indexed numerator, uint256 denominator);
 
-    constructor(address _system) public Manageable(_system) {
+    constructor(address _system, address _collateral, address _principal) public Manageable(_system) {
+        collateral = _collateral;
+        principal = _principal;
         feeBeneficiary = governance();
     }
 
@@ -25,6 +30,16 @@ contract Controller is IController, Manageable {
 
     function removeStrategy(address _strategy) public onlyGovernance {
         strategies[_strategy] = false;
+    }
+
+    function setPerformanceFeeNumerator(uint256 _performanceFeeNumerator) public onlyGovernance {
+        performanceFeeNumerator = _performanceFeeNumerator;
+        emit FeesUpdated(performanceFeeNumerator, performanceFeeDenominator);
+    }
+
+    function setPerformanceFeeDenominator(uint256 _performanceFeeDenominator) public onlyGovernance {
+        performanceFeeDenominator = _performanceFeeDenominator;
+        emit FeesUpdated(performanceFeeNumerator, performanceFeeDenominator);
     }
 
     function collectFees(address _feeToken, uint256 _fee) external {
