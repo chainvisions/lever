@@ -36,6 +36,8 @@ contract LeverageMining is Governable {
     uint256 public leverageMiningRewards = 50000e18; // 50k LVR
     // How long each bonus mining pool lasts
     uint256 public bonusPoolDuration = 14 days;
+    // How many rewards can be reclaimed by governance.
+    uint256 public governanceClaimableRewards;
     PoolInfo[] public poolInfo;
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Greylist for allowing greylisted contracts to interact with bonus mining.
@@ -47,10 +49,15 @@ contract LeverageMining is Governable {
         _;
     }
 
+    modifier contractHasMinter {
+        require(lever.isMinter(address(this)), "LeverageMining: Contract is not added as a minter");
+        _;
+    }
+
     // Updates a bonus pool.
     modifier updatePool(uint256 _pid) {
         PoolInfo storage pool = poolInfo[_pid];
-        pool.rewardsPerShare = reward
+        pool.rewardsPerShare = 0;
         _;
     }
 
@@ -61,7 +68,7 @@ contract LeverageMining is Governable {
     /* ========== BONUS MINING ========== */
 
     // Add a new bonus mining pool.
-    function addPool(IERC20 _stakeToken, uint256 _rewardAllocation, uint256 _rewardDelay) public onlyGovernance {
+    function addPool(IERC20 _stakeToken, uint256 _rewardAllocation, uint256 _rewardDelay) public onlyGovernance contractHasMinter {
         require(_rewardAllocation <= bonusMiningRewards, "LeverageMining: Bonus rewards cannot go over allocation");
         bonusMiningRewards = bonusMiningRewards.sub(_rewardAllocation);
         lever.mint(address(this), _rewardAllocation);
@@ -77,7 +84,7 @@ contract LeverageMining is Governable {
     }
 
     // Update the allocation of a bonus mining pool.
-    function updateAllocation(uint256 _pid, uint256 _rewardAllocation) public onlyGovernance {
+    function updateAllocation(uint256 _pid, uint256 _rewardAllocation) public onlyGovernance contractHasMinter {
         PoolInfo storage pool = poolInfo[_pid];
         require(now > pool.poolDuration, "LeverageMining: Pool must expire before it can be allocated more rewards");
         require(_rewardAllocation <= bonusMiningRewards, "LeverageMining: Bonus rewards cannot go over allocation");
@@ -104,6 +111,33 @@ contract LeverageMining is Governable {
         user.amount = user.amount.sub(_amount);
     }
 
+    // Withdraw from the contract and forget your rewards.
+    function exit(uint256 _pid) public vampireDefense {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        pool.stakeToken.safeTransfer(msg.sender, user.amount);
+        governanceClaimableRewards = governanceClaimableRewards.add(user.rewards);
+        user.amount = 0;
+        user.rewards = 0;
+    }
+
+    /* ========== LEVERAGE MINING ========== */
+
+    /* ========== GOVERNANCE FUNCTIONS ========== */
+
+    // Claim any rewards that were forgotten.
+    function performClaim() public onlyGovernance {
+        uint256 rewards = governanceClaimableRewards;
+        governanceClaimableRewards = 0;
+        IERC20(address(lever)).safeTransfer(governance(), rewards);
+    }
+
+    // TODO: Loop through each pool and make sure `_token` is not a pool token.
+    // Allows for recovering any arbitrary ERC20 token sent to the contract.
+    function recoverERC20(address _token, uint256 _amount) public onlyGovernance {
+        IERC20(_token).safeTransfer(governance(), _amount);
+    }
+
     // Add an address to the greylist.
     function addToGreylist(address _account) public onlyGovernance {
         greylist[_account] = true;
@@ -114,7 +148,10 @@ contract LeverageMining is Governable {
         greylist[_account] = false;
     }
 
-    /* ========== LEVERAGE MINING ========== */
-
+    // Burn the minting key of the contract.
+    function burnMinter() public onlyGovernance {
+        require(bonusMiningRewards == 0 && leverageMiningRewards == 0, "LeverageMining: The contract still has rewards");
+        lever.renounceMinter();
+    }
 
 }
