@@ -25,6 +25,10 @@ contract Position is IPosition, Manageable {
     address public owner;
     // How much collateral to utilize.
     uint256 public maxUtilization;
+    // Overrides maxUtilization and uses the most collateral possible.
+    // Note: Utilizing the max amount of collateral brings higher risks of
+    // having your position liquidated.
+    bool public utilizeMax;
     // Health factor where debt is automatically repayed.
     uint256 public unsafeHeathFactor;
     // Percentage to liquidate to repay the debt.
@@ -45,6 +49,7 @@ contract Position is IPosition, Manageable {
     }
 
     constructor(address _system, address _strategy) public Manageable(_system) {
+        require(msg.sender == positionManager(), "Position: Creator is not PositionManager");
         collateral = IController(controller()).collateral();
         principal = IController(controller()).principal();
         strategy = _strategy;
@@ -75,14 +80,31 @@ contract Position is IPosition, Manageable {
         (bool success, bytes memory data) = strategy.delegatecall(
             abi.encodeWithSignature("harvest()")
         );
-
+        require(success, "Position: Harvest failed");
     }
 
     function manage() public onlyOwnerOrManager {
         harvestAndCompound();
         if(supplyHealthFactor() <= unsafeHeathFactor) {
+            uint256 amountToLiquidate = investment().mul(liquidationPct).div(1000);
+            _liquidateAmount(amountToLiquidate);
             _repayDebt(100e18);
         }
+    }
+
+    function _liquidateAmount(uint256 _amount) internal {
+        (bool success, bytes memory data) = strategy.delegatecall(
+            abi.encodeWithSignature("liquidateAmount(uint256 _amount)", _amount)
+        );
+        require(success, "Position: Liquidation failed");
+    }
+
+    function investment() public view returns (uint256) {
+        (bool success, bytes memory data) = strategy.staticcall(
+            abi.encodeWithSignature("investment()")
+        );
+        require(success, "Position: Fetching investment failed");
+        return abi.decode(data, (uint256));
     }
 
     // Liquidates the position back into the principal.
