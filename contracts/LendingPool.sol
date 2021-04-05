@@ -3,11 +3,12 @@ pragma solidity 0.5.16;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./interfaces/ILendingPool.sol";
 import "./interfaces/ILendingPoolToken.sol";
 import "./Controllable.sol";
+import "./LendingPoolToken.sol";
 
 /// @title Lever Lending Pool
 /// @author Chainvisions
@@ -28,6 +29,13 @@ contract LendingPool is ILendingPool, ReentrancyGuard, Controllable {
     uint256 constant basisPoint = 1000; // 1000 basis points for percentages.
     mapping(address => Pool) public lendingToken;
     event Deposit(address indexed beneficiary, uint256 amount);
+
+    modifier onlyGovernanceOrController {
+        require(msg.sender == governance() || msg.sender == controller(), "LendingPool: Caller must be Governance or Controller");
+        _;
+    }
+
+    constructor(address _system) public Controllable(_system) {}
 
     function deposit(address _token, uint256 _amount) public nonReentrant {
         _deposit(_amount, _token, msg.sender, msg.sender);
@@ -66,6 +74,16 @@ contract LendingPool is ILendingPool, ReentrancyGuard, Controllable {
         require(_amount <= collateralBorrowingPower, "LendingPool: Cannot borrow over your borrowing power");
         borrowPool.debt[msg.sender] = borrowPool.debt[msg.sender].add(_amount);
         IERC20(_token).safeTransfer(msg.sender, _amount);
+    }
+
+    function addToken(address _token) public onlyGovernanceOrController {
+        Pool storage pool = lendingToken[_token];
+        require(address(pool.lToken) == address(0), "LendingPool: Pool already exists");
+        LendingPoolToken poolToken = new LendingPoolToken(
+            string(abi.encodePacked("Lever Lending ", ERC20Detailed(_token).symbol())), 
+            string(abi.encodePacked("l", ERC20Detailed(_token).symbol()))
+        );
+        pool.lToken = ILendingPoolToken(address(poolToken));
     }
 
     function tokenBalance(address _token) public view returns (uint256) {

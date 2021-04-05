@@ -9,6 +9,8 @@ interface ILendingPool {
     function borrow(uint256 _amount) external;
     // Liquidate the collateral of the specified address.
     function liquidate(address _token, uint256 _repayAmount) external;
+    // Add a new token to the lending pool.
+    function addToken(address _token) external;
     // Get how much of `_token` the lending pool holds.
     function tokenBalance(address _token) external view returns (uint256);
     // Get the price of the lToken equivalent of `_token`.
