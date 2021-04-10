@@ -6,4 +6,5 @@ interface IController {
     function performanceFeeDenominator() external view returns (uint256);
     function collateral() external view returns (address);
     function principal() external view returns (address);
+    function bullOrBear() external view returns (bool);
 }

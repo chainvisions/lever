@@ -14,6 +14,8 @@ contract Controller is IController, Manageable {
     address public feeBeneficiary;
     uint256 performanceFeeNumerator;
     uint256 performanceFeeDenominator;
+    // Market agnosticity for leveraged positions.
+    bool public bullOrBear;
     mapping(address => bool) public strategies;
     event FeesCollected(address indexed token, uint256 indexed fees);
     event FeesUpdated(uint256 indexed numerator, uint256 denominator);
@@ -40,6 +42,10 @@ contract Controller is IController, Manageable {
     function setPerformanceFeeDenominator(uint256 _performanceFeeDenominator) public onlyGovernance {
         performanceFeeDenominator = _performanceFeeDenominator;
         emit FeesUpdated(performanceFeeNumerator, performanceFeeDenominator);
+    }
+
+    function setMarket(bool _market) public onlyGovernance {
+        bullOrBear = _market;
     }
 
     function collectFees(address _feeToken, uint256 _fee) external {

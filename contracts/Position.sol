@@ -33,6 +33,8 @@ contract Position is IPosition, Manageable {
     uint256 public unsafeHeathFactor;
     // Percentage to liquidate to repay the debt.
     uint256 public liquidationPct;
+    // Snapshot of what the current market is.
+    bool public marketSnapshot;
     // Name to display on BSCScan.
     string public name = "Lever Protocol Leveraged Position";
     // Trusted managers for managing the position.
@@ -52,6 +54,7 @@ contract Position is IPosition, Manageable {
         require(msg.sender == positionManager(), "Position: Creator is not PositionManager");
         collateral = IController(controller()).collateral();
         principal = IController(controller()).principal();
+        marketSnapshot = IController(controller()).bullOrBear();
         strategy = _strategy;
         owner = tx.origin;
         maxUtilization = 400; // 40%
