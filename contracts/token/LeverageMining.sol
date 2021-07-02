@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -13,7 +12,6 @@ import "../Governable.sol";
 /// @notice Smart contract for LVR farming and LVR Leverage Mining.
 
 contract LeverageMining is Governable {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     struct UserInfo {
@@ -68,7 +66,7 @@ contract LeverageMining is Governable {
         _;
     }
 
-    constructor(address _system, ILever _lever) public Governable(_system) {
+    constructor(address _system, ILever _lever) Governable(_system) {
         lever = _lever;
     }
 
@@ -77,13 +75,13 @@ contract LeverageMining is Governable {
     // Add a new bonus mining pool.
     function addPool(IERC20 _stakeToken, uint256 _rewardAllocation, uint256 _rewardDelay) public onlyGovernance contractHasMinter {
         require(_rewardAllocation <= bonusMiningRewards, "LeverageMining: Bonus rewards cannot go over allocation");
-        bonusMiningRewards = bonusMiningRewards.sub(_rewardAllocation);
+        bonusMiningRewards = bonusMiningRewards - _rewardAllocation;
         lever.mint(address(this), _rewardAllocation);
         poolInfo.push(
             PoolInfo({
                 stakeToken: _stakeToken,
                 rewardReserves: _rewardAllocation,
-                poolDuration: now.add(bonusPoolDuration),
+                poolDuration: block.timestamp + bonusPoolDuration,
                 rewardDelay: _rewardDelay,
                 rewardsPerShare: 0
             })
@@ -93,11 +91,11 @@ contract LeverageMining is Governable {
     // Update the allocation of a bonus mining pool.
     function updateAllocation(uint256 _pid, uint256 _rewardAllocation) public onlyGovernance contractHasMinter {
         PoolInfo storage pool = poolInfo[_pid];
-        require(now > pool.poolDuration, "LeverageMining: Pool must expire before it can be allocated more rewards");
+        require(block.timestamp > pool.poolDuration, "LeverageMining: Pool must expire before it can be allocated more rewards");
         require(_rewardAllocation <= bonusMiningRewards, "LeverageMining: Bonus rewards cannot go over allocation");
-        bonusMiningRewards = bonusMiningRewards.sub(_rewardAllocation);
+        bonusMiningRewards = bonusMiningRewards - _rewardAllocation;
         lever.mint(address(this), _rewardAllocation);
-        pool.poolDuration = now.add(bonusPoolDuration);
+        pool.poolDuration = block.timestamp + bonusPoolDuration;
         pool.rewardReserves = _rewardAllocation;
     }
 
@@ -105,9 +103,9 @@ contract LeverageMining is Governable {
     function stake(uint256 _pid, uint256 _amount) public vampireDefense updatePool(_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        require(pool.poolDuration > now, "LeverageMining: Pool has expired");
+        require(pool.poolDuration > block.timestamp, "LeverageMining: Pool has expired");
         pool.stakeToken.safeTransferFrom(msg.sender, address(this), _amount);
-        user.amount = user.amount.add(_amount);
+        user.amount = user.amount + _amount;
     }
 
     // Withdraw from a bonus reward pool.
@@ -115,7 +113,7 @@ contract LeverageMining is Governable {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(_amount <= user.amount, "LeverageMining: Cannot withdraw more than the deposited amount");
-        user.amount = user.amount.sub(_amount);
+        user.amount = user.amount - _amount;
     }
 
     // Withdraw from the contract and forget your rewards.
@@ -123,7 +121,7 @@ contract LeverageMining is Governable {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         pool.stakeToken.safeTransfer(msg.sender, user.amount);
-        governanceClaimableRewards = governanceClaimableRewards.add(user.rewards);
+        governanceClaimableRewards = governanceClaimableRewards + user.rewards;
         user.amount = 0;
         user.rewards = 0;
     }

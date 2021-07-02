@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IPositionManager.sol";
@@ -11,7 +10,6 @@ import "./Controllable.sol";
 import "./Position.sol";
 
 contract PositionManager is IPositionManager, Controllable {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     struct PositionInfo {
@@ -38,7 +36,7 @@ contract PositionManager is IPositionManager, Controllable {
         );
         positions[address(position)] = true;
         userPositions[msg.sender].push(address(position));
-        emit PositionOpened(positionInfo.length.sub(1), positionInfo[positionInfo.length.sub(1)].positionAddress);
+        emit PositionOpened(positionInfo.length - 1, positionInfo[positionInfo.length.sub - 1].positionAddress);
     }
 
     function salvage(address _token, uint256 _amount) public onlyGovernance {

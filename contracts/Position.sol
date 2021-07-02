@@ -1,8 +1,7 @@
-pragma solidity 0.5.16;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IPosition.sol";
 import "./interfaces/IController.sol";
 import "./Manageable.sol";
@@ -12,7 +11,6 @@ import "./Manageable.sol";
 /// @notice A leveraged yield farming position.
 
 contract Position is IPosition, Manageable {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // Collateral for borrowing
@@ -50,7 +48,7 @@ contract Position is IPosition, Manageable {
         _;
     }
 
-    constructor(address _system, address _strategy) public Manageable(_system) {
+    constructor(address _system, address _strategy) Manageable(_system) {
         require(msg.sender == positionManager(), "Position: Creator is not PositionManager");
         collateral = IController(controller()).collateral();
         principal = IController(controller()).principal();
@@ -89,7 +87,7 @@ contract Position is IPosition, Manageable {
     function manage() public onlyOwnerOrManager {
         harvestAndCompound();
         if(supplyHealthFactor() <= unsafeHeathFactor) {
-            uint256 amountToLiquidate = investment().mul(liquidationPct).div(1000);
+            uint256 amountToLiquidate = (investment() * liquidationPct) / 1000;
             _liquidateAmount(amountToLiquidate);
             _repayDebt(100e18);
         }
