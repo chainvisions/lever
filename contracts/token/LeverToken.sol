@@ -1,8 +1,10 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: UNLICENSED
+/*
+pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Mintable.sol";
 import "../Governable.sol";
 
 contract LeverToken is ERC20, ERC20Detailed, ERC20Mintable, Governable {
@@ -19,3 +21,4 @@ contract LeverToken is ERC20, ERC20Detailed, ERC20Mintable, Governable {
     }
 
 }
+*/

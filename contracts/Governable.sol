@@ -1,4 +1,5 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.6;
 
 import "./System.sol";
 
@@ -6,7 +7,7 @@ contract Governable {
 
     System public system;
 
-    constructor(address _system) public {
+    constructor(address _system) {
         require(_system != address(0), "Governable: System cannot be 0");
         system = System(_system);
     }

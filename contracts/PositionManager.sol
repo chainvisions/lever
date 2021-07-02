@@ -1,8 +1,9 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IPositionManager.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IPosition.sol";
@@ -25,7 +26,7 @@ contract PositionManager is IPositionManager, Controllable {
     mapping(address => bool) positions;
     event PositionOpened(uint256 indexed id, address indexed position);
 
-    constructor(address _system) public Controllable(_system) {}
+    constructor(address _system) Controllable(_system) {}
 
     function openPosition(address _strategy) public {
         require(IController(controller()).strategyApproved(_strategy), "PositionManager: Unauthorized strategy");

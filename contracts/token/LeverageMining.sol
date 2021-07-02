@@ -1,9 +1,10 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/ILever.sol";
 import "../Governable.sol";
 
@@ -26,6 +27,12 @@ contract LeverageMining is Governable {
         uint256 poolDuration; // How long the rewards will last for.
         uint256 rewardDelay; // How long until rewards are distributed after the pool creation.
         uint256 rewardsPerShare; // How many rewards per token staked in the pool.
+    }
+
+    struct Epoch {
+        uint256 rewards;
+        uint256 epochStartTime;
+        uint256 epochEndTime;
     }
 
     // LVR token to distribute.

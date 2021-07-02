@@ -1,4 +1,4 @@
-pragma solidity 0.5.16;
+pragma solidity 0.8.6;
 
 interface IComptroller {
     function markets(address _vtoken) external view returns (bool, uint256, bool);

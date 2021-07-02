@@ -1,8 +1,9 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IController.sol";
 import "./Manageable.sol";
 
@@ -11,10 +12,11 @@ contract Controller is IController, Manageable {
 
     address public collateral;
     address public principal;
+    address public wbnb;
     address public feeBeneficiary;
     uint256 performanceFeeNumerator;
     uint256 performanceFeeDenominator;
-    // Market agnosticity for leveraged positions.
+    // Dynamic adjustment for leveraged positions.
     bool public bullOrBear;
     mapping(address => bool) public strategies;
     event FeesCollected(address indexed token, uint256 indexed fees);
