@@ -1,4 +1,4 @@
-pragma solidity 0.8.6;
+pragma solidity ^0.8.0;
 
 interface IController {
     function strategyApproved(address _strategy) external view returns (bool);

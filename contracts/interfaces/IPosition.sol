@@ -1,4 +1,4 @@
-pragma solidity 0.8.6;
+pragma solidity ^0.8.0;
 
 interface IPosition {
     function supplyCollateral(uint256 _amount) external;

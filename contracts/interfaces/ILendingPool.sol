@@ -9,8 +9,6 @@ interface ILendingPool {
     function borrow(uint256 _amount) external;
     // Liquidate the collateral of the specified address.
     function liquidate(uint256 _repayAmount) external;
-    // 
-    function flashloan() external;
     // Get how much of the underlying token the pool holds.
     function tokenBalance() external view returns (uint256);
     // Get the price of the lending pool lToken.

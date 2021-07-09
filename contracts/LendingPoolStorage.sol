@@ -18,9 +18,6 @@ contract LendingPoolStorage {
     /// @notice Safe percentage of utilization for capital efficiency.
     uint256 public safeUtilization;
 
-    /// @notice Fee for flashloans.
-    uint256 public flashloanFee;
-
     /// @notice Whitelist for contracts for a guarded launch.
     mapping(address => bool) public whitelist;
 
@@ -28,8 +25,6 @@ contract LendingPoolStorage {
     bool public guarded;
 
     uint256 internal constant _PRECISION = 10000;
-
-    bytes32 private constant _RETURN_VALUE = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
     event Deposit(address indexed from, uint256 amount);
 
