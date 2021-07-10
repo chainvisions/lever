@@ -13,7 +13,7 @@ import {LendingPoolStorage} from "./LendingPoolStorage.sol";
 contract LendingPool is LendingPoolStorage, ERC20Upgradeable {
     using SafeERC20 for IERC20;
 
-    event Deposit(address indexed from, uint256 amount);
+    event Deposit(address indexed from, address indexed to, uint256 amount);
 
     function initialize(
         address _underlying
@@ -24,12 +24,24 @@ contract LendingPool is LendingPoolStorage, ERC20Upgradeable {
     /// @dev Function to supply funds into the lending pool.
     /// @param _amount Amount to supply.
     function deposit(uint256 _amount) external {
-        uint256 toMint = totalSupply() == 0 
-            ? _amount 
+        _deposit(msg.sender, msg.sender, _amount);
+    }
+
+    /// @dev Function to deposit for a specific address.
+    /// @param _for Address to deposit for.
+    /// @param _amount Amount to deposit.
+    function depositFor(address _for, uint256 _amount) external {
+        _deposit(msg.sender, _for, _amount);
+    }
+
+    function _deposit(address _from, address _to, uint256 _amount) internal {
+        uint256 toMint = totalSupply() == 0
+            ? _amount
             : (_amount * totalTokens()) / totalSupply();
-        _mint(msg.sender, toMint);
-        IERC20(underlying()).safeTransferFrom(msg.sender, address(this), _amount);
-        emit Deposit(msg.sender, _amount);
+
+        _mint(_to, toMint);
+        IERC20(underlying()).safeTransferFrom(_from, address(this), _amount);
+        emit Deposit(_from, _to, _amount);
     }
 
     /// @dev Function used to view how many tokens are in the pool.

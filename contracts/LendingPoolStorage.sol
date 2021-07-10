@@ -10,25 +10,11 @@ contract LendingPoolStorage {
     mapping(bytes32 => address) addressStorage;
     mapping(bytes32 => bool) boolStorage;
     
-    /// @notice Underlying token of the pool.
-    ///address public underlying;
-
-    /// @notice Vault to deposit capital in.
-    //address public vault;
-
-    /// @notice Percentage of deposits to put to work.
-    //uint256 public efficiencyNumerator;
-
-    /// @notice Safe percentage of utilization for capital efficiency.
-    //uint256 public safeUtilization;
-
-    /// @notice Guarded launch.
-    //bool public guarded;
-    
     function _setUnderlying(address _address) internal {
         _setAddress("underlying", _address);
     }
 
+    /// @dev Underlying token of the pool.
     function underlying() public view returns (address) {
         return _getAddress("underlying");
     }
@@ -37,6 +23,7 @@ contract LendingPoolStorage {
         _setAddress("vault", _address);
     }
 
+    /// @dev Vault to deposit capital in.
     function vault() public view returns (address) {
         return _getAddress("vault");
     }
@@ -45,6 +32,7 @@ contract LendingPoolStorage {
         _setUint256("efficiencyNumerator", _value);
     }
 
+    /// @dev Percentage of deposits to put to work.
     function efficiencyNumerator() public view returns (uint256) {
         return _getUint256("efficiencyNumerator");
     }
@@ -53,6 +41,7 @@ contract LendingPoolStorage {
         _setUint256("safeUtilization", _value);
     }
 
+    /// @dev Safe percentage of utilization for capital efficiency.
     function safeUtilization() public view returns (uint256) {
         return _getUint256("safeUtilization");
     }
@@ -61,6 +50,7 @@ contract LendingPoolStorage {
         _setBool("guarded", _value);
     }
 
+    /// @dev Guarded launch.
     function guarded() public view returns (bool) {
         return _getBool("guarded");
     }
